@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ نظام الوميض الذكي لمراجعة الفيزياء | ENG. 3LI ⚡</title>
+    <style>
+        :root {
+            --bg-color: #050508;
+            --card-bg: #0d0d14;
+            --accent-color: #00e5ff;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --text-main: #ffffff;
+            --text-muted: #8e92a2;
+            --border-color: #1a1a26;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 25px 15px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .header-controls {
+            width: 100%;
+            max-width: 780px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(13, 13, 20, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 15px 25px;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 25px rgba(0,0,0,0.4);
+        }
+
+        .stat-item {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .stat-item span {
+            color: var(--accent-color);
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .stat-item.score-accent span {
+            color: var(--success-color);
+        }
+
+        .chapter-selector {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scrollbar-width: thin;
+        }
+
+        .chapter-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .chapter-btn:hover, .chapter-btn.active {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background-color: rgba(0, 229, 255, 0.05);
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+        }
+
+        .card-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 780px;
+            box-sizing: border-box;
+            box-shadow: 0 25px 55px rgba(0,0,0,0.6);
+            position: relative;
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .chapter-badge {
+            position: absolute;
+            top: 22px;
+            right: 40px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .question-block {
+            margin-top: 15px;
+            margin-bottom: 35px;
+            text-align: left;
+        }
+
+        .q-en {
+            font-size: 23px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 14px;
+            line-height: 1.45;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 15px;
+        }
+
+        .q-ar {
+            font-size: 19px;
+            color: var(--text-muted);
+            direction: rtl;
+            text-align: right;
+            line-height: 1.6;
+            margin-top: 15px;
+            border-right: 4px solid rgba(255,255,255,0.08);
+            padding-right: 15px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .option-btn {
+            background-color: rgba(255,255,255,0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 18px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-btn:hover {
+            background-color: rgba(255,255,255,0.04);
+            border-color: #3a3a52;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:disabled {
+            pointer-events: none;
+        }
+
+        .opt-en {
+            font-size: 16px;
+            color: var(--text-main);
+            font-weight: 500;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .opt-ar {
+            font-size: 14px;
+            color: var(--text-muted);
+            display: block;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .option-btn.correct {
+            background-color: rgba(46, 204, 113, 0.08) !important;
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.15);
+        }
+        .option-btn.correct .opt-en { color: var(--success-color); }
+
+        .option-btn.wrong {
+            background-color: rgba(231, 76, 60, 0.08) !important;
+            border-color: var(--error-color) !important;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.15);
+        }
+        .option-btn.wrong .opt-en { color: var(--error-color); }
+
+        .feedback-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 14px;
+            display: none;
+            animation: fadeIn 0.35s ease;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .feedback-box.correct-style {
+            background: rgba(46, 204, 113, 0.03);
+            border: 1px solid rgba(46, 204, 113, 0.15);
+            color: var(--success-color);
+        }
+
+        .feedback-box.wrong-style {
+            background: rgba(231, 76, 60, 0.03);
+            border: 1px solid rgba(231, 76, 60, 0.15);
+            color: var(--error-color);
+        }
+
+        .explanation-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .explanation-text {
+            color: var(--text-main);
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        .next-btn {
+            margin-top: 25px;
+            background-color: var(--accent-color);
+            color: #020205;
+            border: none;
+            padding: 14px 40px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            display: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0, 229, 255, 0.25);
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(0, 229, 255, 0.45);
+        }
+
+        .engineer-footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .engineer-footer span {
+            color: var(--accent-color);
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-controls">
+        <div class="stats-bar">
+            <div class="stat-item">السؤال: <span id="current-index">1</span>/<span id="total-questions">0</span></div>
+            <div class="stat-item score-accent">الإجابات الصحيحة: <span id="score-display">0</span></div>
+            <div class="stat-item">النسبة الكلية: <span id="accuracy-display">0%</span></div>
+        </div>
+
+        <div class="chapter-selector" id="chapter-nav">
+            <button class="chapter-btn active" onclick="filterChapter('all')">جميع الأسئلة (113)</button>
+            <button class="chapter-btn" onclick="filterChapter(1)">شابتر 1</button>
+            <button class="chapter-btn" onclick="filterChapter(2)">شابتر 2</button>
+            <button class="chapter-btn" onclick="filterChapter(3)">شابتر 3</button>
+            <button class="chapter-btn" onclick="filterChapter(4)">شابتر 4</button>
+            <button class="chapter-btn" onclick="filterChapter(5)">شابتر 5</button>
+            <button class="chapter-btn" onclick="filterChapter(6)">شابتر 6</button>
+            <button class="chapter-btn" onclick="filterChapter(7)">شابتر 7</button>
+        </div>
+    </div>
+
+    <div class="card-container" id="main-card">
+        <div class="chapter-badge" id="card-chapter-tag">CHAPTER 1</div>
+        
+        <div class="question-block">
+            <div class="q-en" id="q-english">Loading configuration...</div>
+            <div class="q-ar" id="q-arabic">جاري تحميل الإعدادات المنهجية...</div>
+        </div>
+        
+        <div class="options-grid" id="options-box"></div>
+        
+        <div class="feedback-box" id="feedback-box"></div>
+        
+        <div style="text-align: center;">
+            <button class="next-btn" id="next-card-btn" onclick="nextQuestion()">السؤال التالي ➔</button>
+        </div>
+    </div>
+
+    <div class="engineer-footer">
+        CRAFTED WITH PRECISION BY <span>ENG. 3LI</span> © 2026
+    </div>
+
+    <script>
+        // =========================================================================
+        // قاعدة البيانات الشاملة للأسئلة - 113 سؤالاً من شابتر 1 إلى 7
+        // =========================================================================
+        const physicsDatabase = [
+            // --- CHAPTER 1 (20 سؤال) ---
+            { chapter: 1, qEn: "The unit of the Charge", qAr: "وحدة الشحنة الكهربائية", options: [{en:"Volt (V)", ar:"فولت"}, {en:"Newton (N)", ar:"نيوتن"}, {en:"Coulomb (C)", ar:"كولوم"}, {en:"Joule (J)", ar:"جول"}], correctIndex: 2 },
+            { chapter: 1, qEn: "Which of the following pairs of charges will repel each other?", qAr: "أي من أزواج الشحنات التالية سيتنافر مع الآخر؟", options: [{en:"(+, -)", ar:"(+, -)"}, {en:"(+, +)", ar:"(+, +)"}, {en:"(+, neutral)", ar:"(+, متعادلة)"}, {en:"(-, neutral)", ar:"(-, متعادلة)"}], correctIndex: 1 },
+            { chapter: 1, qEn: "Which pair of charges will attract each other?", qAr: "أي زوج من الشحنات سيتجاذب مع الآخر؟", options: [{en:"(+, +)", ar:"(+, +)"}, {en:"(-, -)", ar:"(-, -)"}, {en:"(+, -)", ar:"(+, -)"}, {en:"(-, +)", ar:"(-, +)"}], correctIndex: 2 },
+            { chapter: 1, qEn: "If the distance between two charges is doubled, the electric force becomes:", qAr: "إذا تضاعفت المسافة بين شحنتين، فإن القوة الكهربائية تصبح:", options: [{en:"Four times larger", ar:"أربعة أضعاف"}, {en:"Two times larger", ar:"ضعفين"}, {en:"One-half", ar:"النصف"}, {en:"One-fourth", ar:"الربع"}], correctIndex: 3 },
+            { chapter: 1, qEn: "If both charges are doubled and the distance remains the same, the force becomes:", qAr: "إذا تضاعفت كلتا الشحنتين وبقيت المسافة كما هي، فإن القوة تصبح:", options: [{en:"2 times larger", ar:"ضعفين"}, {en:"4 times larger", ar:"أربعة أضعاف"}, {en:"8 times larger", ar:"ثمانية أضعاف"}, {en:"Unchanged", ar:"لا تتغير"}], correctIndex: 1 },
+            { chapter: 1, qEn: "If the distance between two charges is reduced to half, the electric force becomes:", qAr: "إذا قلت المسافة بين شحنتين إلى النصف، فإن القوة الكهربائية تصبح:", options: [{en:"Twice as large", ar:"ضعفين"}, {en:"Four times as large", ar:"أربعة أضعاف"}, {en:"Half as large", ar:"النصف"}, {en:"One-fourth as large", ar:"الربع"}], correctIndex: 1 },
+            { chapter: 1, qEn: "If the source charge 'q' is positive, the direction of Electric field (E) is:", qAr: "إذا كانت الشحنة المصدر 'q' موجبة، فإن اتجاه المجال الكهربائي (E) يكون:", options: [{en:"Away from the charge", ar:"مبتعدًا عن الشحنة"}, {en:"Towards the charge", ar:"متجهًا نحو الشحنة"}, {en:"Both a & b", ar:"كلاهما"}, {en:"None of these", ar:"لا شيء مما سبق"}], correctIndex: 0 },
+            { chapter: 1, qEn: "If the source charge 'q' is negative, the direction of Electric field (E) is:", qAr: "إذا كانت الشحنة المصدر 'q' سالبة، فإن اتجاه المجال الكهربائي (E) يكون:", options: [{en:"Away from the charge", ar:"مبتعدًا عن الشحنة"}, {en:"Towards the charge", ar:"متجهًا نحو الشحنة"}, {en:"Both a & b", ar:"كلاهما"}, {en:"None of these", ar:"لا شيء مما سبق"}], correctIndex: 1 },
+            { chapter: 1, qEn: "The electric field lines for a point charge are directed radially:", qAr: "خطوط المجال الكهربائي لشحنة نقطية تتجه شعاعيًا:", options: [{en:"Outward for both negative and positive charge", ar:"للخارج لكل من الشحنة السالبة والموجبة"}, {en:"Inward for both negative and positive charge", ar:"للداخل لكل من الشحنة السالبة والموجبة"}, {en:"Outward for negative charge and inward for positive charge", ar:"للخارج للسالبة وللداخل للموجبة"}, {en:"Inward for negative charge and outward for positive charge", ar:"للداخل للسالبة وللخارج للموجبة"}], correctIndex: 3 },
+            { chapter: 1, qEn: "The electric force (Fe) exerted on a positive charge (+q) placed in an electric field E:", qAr: "القوة الكهربائية (Fe) المؤثرة على شحنة موجبة (+q) موضوعة في مجال كهربائي E:", options: [{en:"has the same direction as E", ar:"لها نفس اتجاه E"}, {en:"Has opposite direction to E", ar:"لها اتجاه معاكس لـ E"}, {en:"Is perpendicular to E", ar:"عمودية على E"}, {en:"Has no direction", ar:"ليس لها اتجاه"}], correctIndex: 0 },
+            { chapter: 1, qEn: "The electric force (F) exerted on a negative charge (-q) placed in an electric field E:", qAr: "القوة الكهربائية (F) المؤثرة على شحنة سالبة (-q) موضوعة في مجال كهربائي E:", options: [{en:"has the same direction as E", ar:"لها نفس اتجاه E"}, {en:"Has opposite direction to E", ar:"لها اتجاه معاكس لـ E"}, {en:"Is perpendicular to E", ar:"عمودية على E"}, {en:"Has no direction", ar:"ليس لها اتجاه"}], correctIndex: 1 },
+            { chapter: 1, qEn: "What can be the sign of charges q1 and q2 in the figure?", qAr: "ما يمكن أن تكون إشارة الشحنتين q1 و q2 في الشكل؟", options: [{en:"q1 positive, q2 negative", ar:"q1 موجبة، q2 سالبة"}, {en:"q1 negative, q2 negative", ar:"q1 سالبة، q2 سالبة"}, {en:"q1 negative, q2 positive", ar:"q1 سالبة، q2 موجبة"}, {en:"q1 positive, q2 positive", ar:"q1 موجبة، q2 موجبة"}], correctIndex: 0 },
+            { chapter: 1, qEn: "The electric force F between two charges q1 and q2 separated by r can be calculated as:", qAr: "القوة الكهربائية F بين شحنتين q1 و q2 تفصل بينهما مسافة r يمكن حسابها كالتالي:", options: [{en:"k (q1.q2 / r)", ar:"k (q1.q2 / r)"}, {en:"k (q1.q2 / r²)", ar:"k (q1.q2 / r²)"}, {en:"k (q1.q2 / r³)", ar:"k (q1.q2 / r³)"}, {en:"k (q1.q2 / r⁴)", ar:"k (q1.q2 / r⁴)"}], correctIndex: 1 },
+            { chapter: 1, qEn: "The electric force F between two charges q1 and q2 separated by r is inversely proportional to:", qAr: "القوة الكهربائية F بين شحنتين q1 و q2 تفصل بينهما مسافة r تتناسب عكسيًا مع:", options: [{en:"r", ar:"r"}, {en:"r²", ar:"r²"}, {en:"r³", ar:"r³"}, {en:"r⁴", ar:"r⁴"}], correctIndex: 1 },
+            { chapter: 1, qEn: "The magnitude of the electric field E due to a point charge q at a distance r from the charge is:", qAr: "مقدار المجال الكهربائي E الناتج عن شحنة نقطية q على مسافة r من الشحنة هو:", options: [{en:"k (q / r)", ar:"k (q / r)"}, {en:"k (q / r²)", ar:"k (q / r²)"}, {en:"k (q² / r²)", ar:"k (q² / r²)"}, {en:"k (q / r³)", ar:"k (q / r³)"}], correctIndex: 1 },
+            { chapter: 1, qEn: "The unit of the electric field E is [with N: Newton, C: Coulomb]:", qAr: "وحدة المجال الكهربائي E هي [حيث N: نيوتن، C: كولوم]:", options: [{en:"C/N", ar:"C/N"}, {en:"N.C", ar:"N.C"}, {en:"N/C", ar:"N/C"}, {en:"N².C²", ar:"N².C²"}], correctIndex: 2 },
+            { chapter: 1, qEn: "The Force per unit charge (F/q) is known as:", qAr: "القوة لكل وحدة شحنة (F/q) تعرف باسم:", options: [{en:"Electric field", ar:"المجال الكهربائي"}, {en:"Electric flux", ar:"الفيض الكهربائي"}, {en:"Electric current", ar:"التيار الكهربائي"}, {en:"Electric potential", ar:"الجهد الكهربائي"}], correctIndex: 0 },
+            { chapter: 1, qEn: "The expression of linear charge density is given by:", qAr: "تعبير كثافة الشحنة الخطية يعطى بالعلاقة:", options: [{en:"λ = Q/A", ar:"λ = Q/A"}, {en:"λ = Q/V", ar:"λ = Q/V"}, {en:"λ = Q/l", ar:"λ = Q/l"}, {en:"λ = V/Q", ar:"λ = V/Q"}], correctIndex: 2 },
+            { chapter: 1, qEn: "The surface charge density σ is defined by:", qAr: "كثافة الشحنة السطحية σ تعرف بالعلاقة:", options: [{en:"σ = Q/A", ar:"σ = Q/A"}, {en:"σ = Q A", ar:"σ = Q A"}, {en:"σ = Q/A²", ar:"σ = Q/A²"}, {en:"σ = Q A²", ar:"σ = Q A²"}], correctIndex: 0 },
+            { chapter: 1, qEn: "When a particle of charge q and mass m is placed in an electric field E, the acceleration of the particle is expressed as:", qAr: "عندما يوضع جسيم شحنته q وكتلته m في مجال كهربائي E، فإن تسارع الجسيم يعبر عنه بالعلاقة:", options: [{en:"a = qm / E", ar:"a = qm / E"}, {en:"a = qE / m", ar:"a = qE / m"}, {en:"a = qmE", ar:"a = qmE"}, {en:"a = q²E / m", ar:"a = q²E / m"}], correctIndex: 1 },
+
+            // --- CHAPTER 2 (8 سؤال) ---
+            { chapter: 2, qEn: "The unit of electric flux is:", qAr: "وحدة الفيض الكهربائي هي:", options: [{en:"N.m² / C", ar:"N.m² / C"}, {en:"C.m² / N", ar:"C.m² / N"}, {en:"N.C / m²", ar:"N.C / m²"}, {en:"m² / N.C", ar:"m² / N.C"}], correctIndex: 0 },
+            { chapter: 2, qEn: "A spherical gaussian surface surrounds a point charge q, the charge is moved to another location inside the surface. The total flux is:", qAr: "سطح غاوسي كروي يحيط بشحنة نقطية q، تم نقل الشحنة إلى موقع آخر داخل السطح. الفيض الكلي:", options: [{en:"Change", ar:"يتغير"}, {en:"Not change", ar:"لا يتغير"}, {en:"Increases", ar:"يزداد"}, {en:"Decreases", ar:"يقل"}], correctIndex: 1 },
+            { chapter: 2, qEn: "Consider figure, where the normal to the surface of area A is at an angle (θ=90°) to the uniform electric field. Electric flux is:", qAr: "اعتبر الشكل، حيث العمودي على سطح مساحته A يصنع زاوية (θ=90°) مع المجال الكهربائي المنتظم. الفيض الكهربائي هو:", options: [{en:"ΦE = EA", ar:"ΦE = EA"}, {en:"ΦE = 0", ar:"ΦE = 0"}, {en:"ΦE = E", ar:"ΦE = E"}, {en:"ΦE = E/A", ar:"ΦE = E/A"}], correctIndex: 1 },
+            { chapter: 2, qEn: "A rectangular area is oriented in a uniform Electric field directed left to right. Which geometry results in the maximum electric flux through the area?", qAr: "منطقة مستطيلة موضوعة في مجال كهربائي منتظم اتجاهه من اليسار إلى اليمين. أي شكل هندسي يعطي أقصى فيض كهربائي عبر المنطقة؟", options: [{en:"Surface perpendicular to the field", ar:"سطح عمودي على المجال"}, {en:"Surface parallel to the field", ar:"سطح موازٍ للمجال"}, {en:"Surface tilted at small angle", ar:"سطح مائل بزاوية صغيرة"}, {en:"Surface tilted at larger angle", ar:"سطح مائل بزاوية أكبر"}], correctIndex: 0 },
+            { chapter: 2, qEn: "The electric flux depends on the:", qAr: "الفيض الكهربائي يعتمد على:", options: [{en:"Electric field", ar:"المجال الكهربائي"}, {en:"Area", ar:"المساحة"}, {en:"Angle between the surface and the electric field", ar:"الزاوية بين السطح والمجال الكهربائي"}, {en:"All of the above", ar:"كل ما سبق"}], correctIndex: 3 },
+            { chapter: 2, qEn: "Gauss's law states that:", qAr: "قانون غاوس ينص على أن:", options: [{en:"∮ E · dA = q / ε0", ar:"∮ E · dA = q / ε0"}, {en:"∮ E · dA = q.ε0", ar:"∮ E · dA = q.ε0"}, {en:"∮ E · dA = ε0 q", ar:"∮ E · dA = ε0 q"}, {en:"∮ E · dA = ε0 / q", ar:"∮ E · dA = ε0 / q"}], correctIndex: 0 },
+            { chapter: 2, qEn: "Five point charges and four Gaussian surfaces S1, S2, S3, S4 are shown in the figure. What is the total electric flux through surface S4?", qAr: "خمس شحنات نقطية وأربعة أسطح غاوسية S1, S2, S3, S4 موضحة في الشكل. ما هو الفيض الكهربائي الكلي عبر السطح S4؟", options: [{en:"2q / ε0", ar:"2q / ε0"}, {en:"4q / ε0", ar:"4q / ε0"}, {en:"5q / ε0", ar:"5q / ε0"}, {en:"6q / ε0", ar:"6q / ε0"}], correctIndex: 1 },
+            { chapter: 2, qEn: "A point charge is located at the center of a spherical surface and the total electric flux through the sphere is Φ. What will be the electric flux through the sphere if the point charge is placed outside of the sphere?", qAr: "شحنة نقطية موجودة في مركز سطح كروي والفيض الكهربائي الكلي عبر الكرة هو Φ. ماذا سيكون الفيض الكهربائي عبر الكرة إذا وضعت الشحنة النقطية خارج الكرة؟", options: [{en:"2Φ", ar:"2Φ"}, {en:"Φ/2", ar:"Φ/2"}, {en:"Zero", ar:"صفر"}, {en:"Φ", ar:"Φ"}], correctIndex: 2 },
+
+            // --- CHAPTER 3 (13 سؤال) ---
+            { chapter: 3, qEn: "Electric potential is defined as:", qAr: "الجهد الكهربائي يعرف بأنه:", options: [{en:"Work done per unit charge", ar:"الشغل المبذول لكل وحدة شحنة"}, {en:"Force per unit charge", ar:"القوة لكل وحدة شحنة"}, {en:"Energy per unit charge", ar:"الطاقة لكل وحدة شحنة"}, {en:"Charge per unit energy", ar:"الشحنة لكل وحدة طاقة"}], correctIndex: 2 },
+            { chapter: 3, qEn: "The work done to move a charge q through an electric field at constant velocity is:", qAr: "الشغل المبذول لتحريك شحنة q خلال مجال كهربائي بسرعة ثابتة هو:", options: [{en:"W = qΔV", ar:"W = qΔV"}, {en:"W = q / ΔV", ar:"W = q / ΔV"}, {en:"W = F / d", ar:"W = F / d"}, {en:"2q / ΔV", ar:"2q / ΔV"}], correctIndex: 0 },
+            { chapter: 3, qEn: "The Work needed to move a charge of 3 C from point A to point B at the potential difference VB - VA of 12 V is:", qAr: "الشغل اللازم لتحريك شحنة مقدارها 3 كولوم من النقطة A إلى النقطة B عندما يكون فرق الجهد VB - VA يساوي 12 فولت هو:", options: [{en:"0.25 J", ar:"0.25 جول"}, {en:"4 J", ar:"4 جول"}, {en:"15 J", ar:"15 جول"}, {en:"36 J", ar:"36 جول"}], correctIndex: 3 },
+            { chapter: 3, qEn: "If a positive charge moves in the direction of the electric field, the electric potential:", qAr: "إذا تحركت شحنة موجبة في اتجاه المجال الكهربائي، فإن الجهد الكهربائي:", options: [{en:"Increases", ar:"يزداد"}, {en:"Decreases", ar:"يقل"}, {en:"Remains constant", ar:"يبقى ثابتًا"}, {en:"Becomes infinite", ar:"يصبح لا نهائيًا"}], correctIndex: 1 },
+            { chapter: 3, qEn: "If a negative charge moves in the direction of the electric field, the change in potential energy is:", qAr: "إذا تحركت شحنة سالبة في اتجاه المجال الكهربائي، فإن التغير في طاقة الوضع يكون:", options: [{en:"Positive", ar:"موجب"}, {en:"Negative", ar:"سالب"}, {en:"Zero", ar:"صفر"}, {en:"Infinite", ar:"لا نهائي"}], correctIndex: 0 },
+            { chapter: 3, qEn: "Two parallel plates with potential difference 20 Volts. If the separation between the plates is 2 cm, what is the electric field between them?", qAr: "لوحان متوازيان فرق الجهد بينهما 20 فولت. إذا كانت المسافة بين اللوحين 2 سم، فما هو المجال الكهربائي بينهما؟", options: [{en:"500 V/m", ar:"500 V/m"}, {en:"1000 V/m", ar:"1000 V/m"}, {en:"2000 V/m", ar:"2000 V/m"}, {en:"4000 V/m", ar:"4000 V/m"}], correctIndex: 1 },
+            { chapter: 3, qEn: "The work done by the electric force when a charge q moves an infinitesimal distance ds in an electric field E is:", qAr: "الشغل المبذول بواسطة القوة الكهربائية عندما تتحرك شحنة q مسافة متناهية في الصغر ds في مجال كهربائي E هو:", options: [{en:"W = q/E", ar:"W = q/E"}, {en:"W = qE", ar:"W = qE"}, {en:"W = qE ds", ar:"W = qE ds"}, {en:"W = E ds / q", ar:"W = E ds / q"}], correctIndex: 2 },
+            { chapter: 3, qEn: "Which pair of the following units is equivalent?", qAr: "أي زوج من الوحدات التالية متكافئ؟", options: [{en:"N and J", ar:"نيوتن وجول"}, {en:"J and V", ar:"جول وفولت"}, {en:"N and V", ar:"نيوتن وفولت"}, {en:"J and m", ar:"جول ومتر"}], correctIndex: 1 },
+            { chapter: 3, qEn: "The change in the potential energy of a charge-electric field system ΔU between two points separated by distance d in a uniform electric field E equals:", qAr: "التغير في طاقة الوضع لنظام شحنة-مجال كهربائي ΔU بين نقطتين تفصل بينهما مسافة d في مجال كهربائي منتظم E يساوي:", options: [{en:"ΔU = -qEd", ar:"ΔU = -qEd"}, {en:"ΔU = -Ed/q", ar:"ΔU = -Ed/q"}, {en:"ΔU = -qE²d", ar:"ΔU = -qE²d"}, {en:"ΔU = -qE d²", ar:"ΔU = -qE d²"}], correctIndex: 0 },
+            { chapter: 3, qEn: "The potential difference between two points in a uniform electric field separated by distance d is:", qAr: "فرق الجهد بين نقطتين في مجال كهربائي منتظم تفصل بينهما مسافة d هو:", options: [{en:"ΔV = Ed", ar:"ΔV = Ed"}, {en:"ΔV = -Ed", ar:"ΔV = -Ed"}, {en:"ΔV = qEd", ar:"ΔV = qEd"}, {en:"ΔV = E/d", ar:"ΔV = E/d"}], correctIndex: 0 },
+            { chapter: 3, qEn: "The electric potential V due to a point charge q at a distance r from the charge is written as:", qAr: "الجهد الكهربائي V الناتج عن شحنة نقطية q على مسافة r من الشحنة يكتب كالتالي:", options: [{en:"V = k (q / r)", ar:"V = k (q / r)"}, {en:"V = k (q / r²)", ar:"V = k (q / r²)"}, {en:"V = k (q² / r)", ar:"V = k (q² / r)"}, {en:"V = k (r / q)", ar:"V = k (r / q)"}], correctIndex: 0 },
+            { chapter: 3, qEn: "The electric potential energy (U) unit is:", qAr: "وحدة طاقة الوضع الكهربائي (U) هي:", options: [{en:"V (Volt)", ar:"فولت"}, {en:"J (Joule)", ar:"جول"}, {en:"W (Watt)", ar:"واط"}, {en:"N (Newton)", ar:"نيوتن"}], correctIndex: 1 },
+            { chapter: 3, qEn: "The electric potential at a point P which is 3 m far from a point charge of 6 μC equals:", qAr: "الجهد الكهربائي عند نقطة P تبعد مسافة 3 أمتار عن شحنة نقطية مقدارها 6 μC يساوي:", options: [{en:"800 V", ar:"800 V"}, {en:"2000 V", ar:"2000 V"}, {en:"18000 V", ar:"18000 V"}, {en:"30000 V", ar:"30000 V"}], correctIndex: 2 },
+
+            // --- CHAPTER 4 (10 سؤال) ---
+            { chapter: 4, qEn: "Which type of energy does the capacitor store?", qAr: "أي نوع من الطاقة يخزنه المكثف؟", options: [{en:"electric potential energy", ar:"طاقة وضع كهربائية"}, {en:"vibrational energy", ar:"طاقة اهتزازية"}, {en:"kinetic energy", ar:"طاقة حركية"}, {en:"thermal energy", ar:"طاقة حرارية"}], correctIndex: 0 },
+            { chapter: 4, qEn: "Capacitor is a device which stores:", qAr: "المكثف هو جهاز يخزن:", options: [{en:"Kinetic energy", ar:"طاقة حركية"}, {en:"Both a and b", ar:"كلاهما"}, {en:"Electric potential energy", ar:"طاقة وضع كهربائية"}, {en:"None of these", ar:"لا شيء مما سبق"}], correctIndex: 2 },
+            { chapter: 4, qEn: "Which component stores energy in an electric field?", qAr: "أي مكون يخزن الطاقة في مجال كهربائي؟", options: [{en:"Inductor", ar:"ملف حث"}, {en:"Capacitor", ar:"مكثف"}, {en:"Transistor", ar:"ترانزستور"}, {en:"Resistor", ar:"مقاومة"}], correctIndex: 1 },
+            { chapter: 4, qEn: "The capacitance of a parallel-plate capacitor is given by equation:", qAr: "سعة المكثف ذو اللوحين المتوازيين تعطى بالعلاقة:", options: [{en:"C = ε0A / d", ar:"C = ε0A / d"}, {en:"C = ε0d / A", ar:"C = ε0d / A"}, {en:"C = ε0Ad", ar:"C = ε0Ad"}, {en:"C = ε0qA / d", ar:"C = ε0qA / d"}], correctIndex: 0 },
+            { chapter: 4, qEn: "When two capacitors having capacitances C1 and C2 are connected in parallel combination, their equivalent capacitance is:", qAr: "عند توصيل مكثفين سعتيهما C1 و C2 على التوازي، فإن السعة المكافئة لهما هي:", options: [{en:"Ceq = (C1.C2) / (C1 + C2)", ar:"Ceq = (C1.C2) / (C1 + C2)"}, {en:"Ceq = C1 - C2", ar:"Ceq = C1 - C2"}, {en:"Ceq = C1 + C2", ar:"Ceq = C1 + C2"}, {en:"Ceq = C1 / C2", ar:"Ceq = C1 / C2"}], correctIndex: 2 },
+            { chapter: 4, qEn: "When two capacitors are connected in series combination, their equivalent capacitance is:", qAr: "عند توصيل مكثفين على التوالي، فإن السعة المكافئة لهما هي:", options: [{en:"Ceq = C1 + C2", ar:"Ceq = C1 + C2"}, {en:"Ceq = C1 - C2", ar:"Ceq = C1 - C2"}, {en:"Ceq = (C1.C2) / (C1 + C2)", ar:"Ceq = (C1.C2) / (C1 + C2)"}, {en:"Ceq = C1 / C2", ar:"Ceq = C1 / C2"}], correctIndex: 2 },
+            { chapter: 4, qEn: "The energy density of an electric field is given by:", qAr: "كثافة الطاقة للمجال الكهربائي تعطى بالعلاقة:", options: [{en:"uE = E² / 2ε0", ar:"uE = E² / 2ε0"}, {en:"uE = ε0E", ar:"uE = ε0E"}, {en:"uE = 1/2 ε0E²", ar:"uE = 1/2 ε0E²"}, {en:"uE = 1 / ε0E²", ar:"uE = 1 / ε0E²"}], correctIndex: 2 },
+            { chapter: 4, qEn: "What is the effect on the capacitance value if the dielectric constant κ increases?", qAr: "ما هو التأثير على قيمة السعة إذا زاد ثابت العزل κ؟", options: [{en:"The capacitance increases", ar:"السعة تزداد"}, {en:"The capacitance decreases", ar:"السعة تقل"}, {en:"Remains constant", ar:"تبقى ثابتة"}, {en:"Becomes zero", ar:"تصبح صفرًا"}], correctIndex: 0 },
+            { chapter: 4, qEn: "The capacitance C of a capacitor is defined as:", qAr: "سعة المكثف C تعرف بأنها:", options: [{en:"C = Q ΔV", ar:"C = Q ΔV"}, {en:"C = Q / ΔV", ar:"C = Q / ΔV"}, {en:"C = Q² ΔV", ar:"C = Q² ΔV"}, {en:"C = ΔV / Q", ar:"C = ΔV / Q"}], correctIndex: 1 },
+            { chapter: 4, qEn: "The capacitance of a capacitor, when dielectric is placed between the plates of a capacitor:", qAr: "سعة المكثف عندما يوضع عازل بين لوحي المكثف:", options: [{en:"Increases", ar:"تزداد"}, {en:"Decreases", ar:"تقل"}, {en:"Remains same", ar:"تبقى كما هي"}, {en:"None of these", ar:"لا شيء مما سبق"}], correctIndex: 0 },
+
+            // --- CHAPTER 5 (32 سؤال) ---
+            { chapter: 5, qEn: "The electromotive force (emf) of a battery is defined as:", qAr: "القوة الدافعة الكهربائية (emf) للبطارية تعرف بأنها:", options: [{en:"Minimum voltage", ar:"أقل جهد"}, {en:"Average voltage", ar:"متوسط الجهد"}, {en:"Maximum possible voltage between its terminals", ar:"أقصى جهد ممكن بين قطبيها"}, {en:"Voltage drop in wires", ar:"هبوط الجهد في الأسلاك"}], correctIndex: 2 },
+            { chapter: 5, qEn: "The potential difference between battery terminals under no load is equal to:", qAr: "فرق الجهد بين قطبي البطارية عند عدم وجود حمل يساوي:", options: [{en:"Internal resistance", ar:"المقاومة الداخلية"}, {en:"Current", ar:"التيار"}, {en:"EMF", ar:"القوة الدافعة الكهربائية"}, {en:"Power", ar:"القدرة"}], correctIndex: 2 },
+            { chapter: 5, qEn: "Electromotive force (emf) is measured in:", qAr: "القوة الدافعة الكهربائية (emf) تقاس بوحدة:", options: [{en:"Ampere", ar:"أمبير"}, {en:"Ohm", ar:"أوم"}, {en:"Volt", ar:"فولت"}, {en:"Watt", ar:"واط"}], correctIndex: 2 },
+            { chapter: 5, qEn: "The main role of a battery in a circuit is to:", qAr: "الدور الرئيسي للبطارية في الدائرة هو:", options: [{en:"Reduce current", ar:"تقليل التيار"}, {en:"Store charge only", ar:"تخزين الشحنة فقط"}, {en:"Provide energy", ar:"توفير الطاقة"}, {en:"Increase resistance", ar:"زيادة المقاومة"}], correctIndex: 2 },
+            { chapter: 5, qEn: "If the internal resistance of a battery is zero, then:", qAr: "إذا كانت المقاومة الداخلية للبطارية صفرًا، فإن:", options: [{en:"Terminal voltage is zero", ar:"جهد الطرفين صفر"}, {en:"Terminal voltage equals emf", ar:"جهد الطرفين يساوي القوة الدافعة الكهربائية"}, {en:"Current becomes zero", ar:"التيار يصبح صفرًا"}, {en:"Resistance becomes infinite", ar:"المقاومة تصبح لا نهائية"}], correctIndex: 1 },
+            { chapter: 5, qEn: "When no current flows in a circuit, the terminal voltage is:", qAr: "عندما لا يمر تيار في الدائرة، فإن جهد الطرفين يكون:", options: [{en:"Zero", ar:"صفر"}, {en:"Less than emf", ar:"أقل من القوة الدافعة الكهربائية"}, {en:"Equal to emf", ar:"مساويًا للقوة الدافعة الكهربائية"}, {en:"Greater than emf", ar:"أكبر من القوة الدافعة الكهربائية"}], correctIndex: 2 },
+            { chapter: 5, qEn: "If current increases, the terminal voltage of a battery:", qAr: "إذا زاد التيار، فإن جهد طرفي البطارية:", options: [{en:"Increases", ar:"يزداد"}, {en:"Decreases", ar:"يقل"}, {en:"Remains constant", ar:"يبقى ثابتًا"}, {en:"Becomes zero", ar:"يصبح صفرًا"}], correctIndex: 1 },
+            { chapter: 5, qEn: "Ohm's Law states that:", qAr: "قانون أوم ينص على أن:", options: [{en:"V ∝ 1/I", ar:"V ∝ 1/I"}, {en:"V ∝ I", ar:"V ∝ I"}, {en:"R ∝ V", ar:"R ∝ V"}, {en:"I ∝ R", ar:"I ∝ R"}], correctIndex: 1 },
+            { chapter: 5, qEn: "Current can be calculated using:", qAr: "التيار يمكن حسابه باستخدام:", options: [{en:"I = V / R", ar:"I = V / R"}, {en:"I = VR", ar:"I = VR"}, {en:"I = R / V", ar:"I = R / V"}, {en:"I = V + R", ar:"I = V + R"}], correctIndex: 0 },
+            { chapter: 5, qEn: "If voltage increases while resistance remains constant, current:", qAr: "إذا زاد الجهد بينما بقيت المقاومة ثابتة، فإن التيار:", options: [{en:"Decreases", ar:"يقل"}, {en:"Remains zero", ar:"يبقى صفرًا"}, {en:"Increases", ar:"يزداد"}, {en:"Becomes constant", ar:"يصبح ثابتًا"}], correctIndex: 2 },
+            { chapter: 5, qEn: "If load resistance increases, the current in the circuit:", qAr: "إذا زادت مقاومة الحمل، فإن التيار في الدائرة:", options: [{en:"Increases", ar:"يزداد"}, {en:"Decreases", ar:"يقل"}, {en:"Becomes zero", ar:"يصبح صفرًا"}, {en:"Remains constant", ar:"يبقى ثابتًا"}], correctIndex: 1 },
+            { chapter: 5, qEn: "The mathematical expression of Ohm's Law is:", qAr: "التعبير الرياضي لقانون أوم هو:", options: [{en:"V = IR", ar:"V = IR"}, {en:"V = R / I", ar:"V = R / I"}, {en:"I = VR", ar:"I = VR"}, {en:"R = IV²", ar:"R = IV²"}], correctIndex: 0 },
+            { chapter: 5, qEn: "Resistance can be calculated as:", qAr: "المقاومة يمكن حسابها كالتالي:", options: [{en:"R = VI", ar:"R = VI"}, {en:"R = V / I", ar:"R = V / I"}, {en:"R = I / V", ar:"R = I / V"}, {en:"R = V + I", ar:"R = V + I"}], correctIndex: 1 },
+            { chapter: 5, qEn: "If resistance doubles and voltage remains constant, current will:", qAr: "إذا تضاعفت المقاومة وبقي الجهد ثابتًا، فإن التيار سوف:", options: [{en:"Double", ar:"يتضاعف"}, {en:"Remain same", ar:"يبقى كما هو"}, {en:"Be halved", ar:"يصبح النصف"}, {en:"Become zero", ar:"يصبح صفرًا"}], correctIndex: 2 },
+            { chapter: 5, qEn: "The unit of current is:", qAr: "وحدة التيار هي:", options: [{en:"Volt", ar:"فولت"}, {en:"Ampere", ar:"أمبير"}, {en:"Ohm", ar:"أوم"}, {en:"Joule", ar:"جول"}], correctIndex: 1 },
+            { chapter: 5, qEn: "In series connection of resistors, what happens to the current across each resistor?", qAr: "في توصيل المقاومات على التوالي، ماذا يحدث للتيار عبر كل مقاومة؟", options: [{en:"Increases", ar:"يزداد"}, {en:"Decreases", ar:"يقل"}, {en:"Remain the same", ar:"يبقى كما هو"}, {en:"Initially increases and then decreases", ar:"يزداد ثم يقل"}], correctIndex: 2 },
+            { chapter: 5, qEn: "When two resistors are connected in series, their equivalent resistance is:", qAr: "عند توصيل مقاومتين على التوالي، فإن المقاومة المكافئة لهما هي:", options: [{en:"Req = R1 + R2", ar:"Req = R1 + R2"}, {en:"Req = R1 - R2", ar:"Req = R1 - R2"}, {en:"Req = R1 / R2", ar:"Req = R1 / R2"}, {en:"Req = R2 / R1", ar:"Req = R2 / R1"}], correctIndex: 0 },
+            { chapter: 5, qEn: "The magnitude of equivalent resistance in parallel connection is ... that in series connection.", qAr: "مقدار المقاومة المكافئة في التوصيل على التوازي يكون ... عنها في التوصيل على التوالي.", options: [{en:"smaller than", ar:"أصغر من"}, {en:"Equal to", ar:"مساويًا لـ"}, {en:"larger than", ar:"أكبر من"}, {en:"zero", ar:"صفر"}], correctIndex: 0 },
+            { chapter: 5, qEn: "In a parallel connection, all devices share the same:", qAr: "في التوصيل على التوازي، جميع الأجهزة تشترك في نفس:", options: [{en:"Current", ar:"التيار"}, {en:"Power", ar:"القدرة"}, {en:"Resistance", ar:"المقاومة"}, {en:"Voltage", ar:"الجهد"}], correctIndex: 3 },
+            { chapter: 5, qEn: "In a series connection, all devices share the same:", qAr: "في التوصيل على التوالي، جميع الأجهزة تشترك في نفس:", options: [{en:"Current", ar:"التيار"}, {en:"Power", ar:"القدرة"}, {en:"Resistance", ar:"المقاومة"}, {en:"Voltage", ar:"الجهد"}], correctIndex: 0 },
+            { chapter: 5, qEn: "Which of the following is used to oppose the flow of electric current?", qAr: "أي من التالي يستخدم لمقاومة تدفق التيار الكهربائي؟", options: [{en:"Capacitor", ar:"مكثف"}, {en:"Inductor", ar:"ملف حث"}, {en:"Resistor", ar:"مقاومة"}, {en:"Diode", ar:"دايود"}], correctIndex: 2 },
+            { chapter: 5, qEn: "When resistors are connected in series, which of the following remains the same?", qAr: "عند توصيل المقاومات على التوالي، أي من التالي يبقى كما هو؟", options: [{en:"Voltage across each resistor", ar:"الجهد عبر كل مقاومة"}, {en:"Current through each resistor", ar:"التيار عبر كل مقاومة"}, {en:"Power dissipated", ar:"القدرة المشتتة"}, {en:"Resistance", ar:"المقاومة"}], correctIndex: 1 },
+            { chapter: 5, qEn: "The equivalent resistance of resistors in series is:", qAr: "المقاومة المكافئة للمقاومات على التوالي هي:", options: [{en:"1/R1 + 1/R2", ar:"1/R1 + 1/R2"}, {en:"R1 + R2", ar:"R1 + R2"}, {en:"(R1.R2)/(R1+R2)", ar:"(R1.R2)/(R1+R2)"}, {en:"R1 - R2", ar:"R1 - R2"}], correctIndex: 1 },
+            { chapter: 5, qEn: "If more resistors are added in series, the total resistance:", qAr: "إذا أضيفت مقاومات أكثر على التوالي، فإن المقاومة الكلية:", options: [{en:"Decreases", ar:"تقل"}, {en:"Remains constant", ar:"تبقى ثابتة"}, {en:"Increases", ar:"تزداد"}, {en:"Becomes zero", ar:"تصبح صفرًا"}], correctIndex: 2 },
+            { chapter: 5, qEn: "The equivalent resistance of a series circuit is always:", qAr: "المقاومة المكافئة لدائرة التوالي تكون دائمًا:", options: [{en:"Less than the smallest resistance", ar:"أقل من أصغر مقاومة"}, {en:"Equal to the largest resistance", ar:"مساوية لأكبر مقاومة"}, {en:"Greater than any individual resistance", ar:"أكبر من أي مقاومة فردية"}, {en:"Zero", ar:"صفر"}], correctIndex: 2 },
+            { chapter: 5, qEn: "In a parallel circuit, which quantity is the same across all resistors?", qAr: "في دائرة التوازي، أي كمية تكون نفسها عبر جميع المقاومات؟", options: [{en:"Current", ar:"التيار"}, {en:"Voltage", ar:"الجهد"}, {en:"Resistance", ar:"المقاومة"}, {en:"Power", ar:"القدرة"}], correctIndex: 1 },
+            { chapter: 5, qEn: "The equivalent resistance of resistors in parallel is always:", qAr: "المقاومة المكافئة للمقاومات على التوازي تكون دائمًا:", options: [{en:"Greater than largest resistor", ar:"أكبر من أكبر مقاومة"}, {en:"Equal to smallest resistor", ar:"مساوية لأصغر مقاومة"}, {en:"Less than the smallest resistor", ar:"أقل من أصغر مقاومة"}, {en:"Zero", ar:"صفر"}], correctIndex: 2 },
+            { chapter: 5, qEn: "If one branch in a parallel circuit breaks, what happens?", qAr: "إذا انقطع فرع واحد في دائرة التوازي، ماذا يحدث؟", options: [{en:"Entire circuit stops", ar:"الدائرة بأكملها تتوقف"}, {en:"Only that branch stops", ar:"فقط ذلك الفرع يتوقف"}, {en:"Current increases everywhere", ar:"التيار يزداد في كل مكان"}, {en:"Voltage becomes zero", ar:"الجهد يصبح صفرًا"}], correctIndex: 1 },
+            { chapter: 5, qEn: "Which expression represents current during charging of an RC circuit?", qAr: "أي تعبير يمثل التيار أثناء شحن دائرة RC؟", options: [{en:"I = (ε/R)(1 - e^(-t/RC))", ar:"I = (ε/R)(1 - e^(-t/RC))"}, {en:"I = (ε/R) e^(-t/RC)", ar:"I = (ε/R) e^(-t/RC)"}, {en:"I = εR e^(-t/RC)", ar:"I = εR e^(-t/RC)"}, {en:"I = q/C", ar:"I = q/C"}], correctIndex: 1 },
+            { chapter: 5, qEn: "The current during discharge of an RC circuit is:", qAr: "التيار أثناء تفريغ دائرة RC هو:", options: [{en:"(Qi/RC) e^(-t/RC)", ar:"(Qi/RC) e^(-t/RC)"}, {en:"-(Qi/RC) e^(-t/RC)", ar:"-(Qi/RC) e^(-t/RC)"}, {en:"Qi/R", ar:"Qi/R"}, {en:"0", ar:"0"}], correctIndex: 1 },
+            { chapter: 5, qEn: "Ohm's law can be written as:", qAr: "قانون أوم يمكن كتابته كالتالي:", options: [{en:"R = I ΔV", ar:"R = I ΔV"}, {en:"ΔV = IR", ar:"ΔV = IR"}, {en:"I = R ΔV", ar:"I = R ΔV"}, {en:"ΔV = R + I", ar:"ΔV = R + I"}], correctIndex: 1 },
+            { chapter: 5, qEn: "When two resistors having resistances R1 and R2, respectively, are connected in parallel combination, their equivalent resistance is:", qAr: "عند توصيل مقاومتين قيمتهما R1 و R2 على التوازي، فإن المقاومة المكافئة هي:", options: [{en:"Req = (R1.R2)/(R1+R2)", ar:"Req = (R1.R2)/(R1+R2)"}, {en:"Req = R1 + R2", ar:"Req = R1 + R2"}, {en:"Req = R1 - R2", ar:"Req = R1 - R2"}, {en:"Req = R2/R1", ar:"Req = R2/R1"}], correctIndex: 0 },
+
+            // --- CHAPTER 6 (24 سؤال) ---
+            { chapter: 6, qEn: "Magnetic field is produced by:", qAr: "المجال المغناطيسي ينشأ بواسطة:", options: [{en:"Only positive charge", ar:"شحنة موجبة فقط"}, {en:"Only negative charge", ar:"شحنة سالبة فقط"}, {en:"Moving electric charge (current)", ar:"شحنة كهربائية متحركة (تيار)"}, {en:"Stationary charge", ar:"شحنة ساكنة"}], correctIndex: 2 },
+            { chapter: 6, qEn: "In a bar magnet, magnetic field lines go from:", qAr: "في قضيب مغناطيسي، خطوط المجال المغناطيسي تخرج من:", options: [{en:"South to North (outside magnet)", ar:"جنوب إلى شمال (خارج المغناطيس)"}, {en:"North to South (outside magnet)", ar:"شمال إلى جنوب (خارج المغناطيس)"}, {en:"Positive to negative", ar:"موجب إلى سالب"}, {en:"Random direction", ar:"اتجاه عشوائي"}], correctIndex: 1 },
+            { chapter: 6, qEn: "When two north poles are brought close, they will:", qAr: "عند تقريب قطبين شماليين من بعضهما، فإنهما:", options: [{en:"Attract", ar:"يتجاذبان"}, {en:"Repel", ar:"يتنافران"}, {en:"Stick together", ar:"يلتصقان"}, {en:"Disappear", ar:"يختفيان"}], correctIndex: 1 },
+            { chapter: 6, qEn: "The magnetic force on a moving charge is given by:", qAr: "القوة المغناطيسية على شحنة متحركة تعطى بالعلاقة:", options: [{en:"F = qE", ar:"F = qE"}, {en:"F = qvB", ar:"F = qvB"}, {en:"F = q v x B", ar:"F = q v x B"}, {en:"F = mv", ar:"F = mv"}], correctIndex: 2 },
+            { chapter: 6, qEn: "Magnetic force acts on:", qAr: "القوة المغناطيسية تؤثر على:", options: [{en:"Stationary charge", ar:"شحنة ساكنة"}, {en:"Moving charge", ar:"شحنة متحركة"}, {en:"Neutral particle only", ar:"جسيم متعادل فقط"}, {en:"Mass only", ar:"كتلة فقط"}], correctIndex: 1 },
+            { chapter: 6, qEn: "Magnetic force is zero when the velocity is:", qAr: "القوة المغناطيسية تكون صفرًا عندما تكون السرعة:", options: [{en:"Perpendicular to B", ar:"عمودية على B"}, {en:"Parallel to B", ar:"موازية لـ B"}, {en:"Opposite to B", ar:"معاكسة لـ B"}, {en:"Circular", ar:"دائرية"}], correctIndex: 1 },
+            { chapter: 6, qEn: "When a north pole and south pole are brought close, they will:", qAr: "عند تقريب قطب شمالي وقطب جنوبي من بعضهما، فإنهما:", options: [{en:"Repel", ar:"يتنافران"}, {en:"Attract", ar:"يتجاذبان"}, {en:"Rotate randomly", ar:"يدوران عشوائيًا"}, {en:"Have no effect", ar:"ليس لهما تأثير"}], correctIndex: 1 },
+            { chapter: 6, qEn: "Magnetic force is maximum when the angle between v and B is:", qAr: "القوة المغناطيسية تكون أعظمية عندما تكون الزاوية بين v و B هي:", options: [{en:"0°", ar:"0°"}, {en:"30°", ar:"30°"}, {en:"90°", ar:"90°"}, {en:"180°", ar:"180°"}], correctIndex: 2 },
+            { chapter: 6, qEn: "Magnetic force is perpendicular to:", qAr: "القوة المغناطيسية تكون عمودية على:", options: [{en:"Only velocity", ar:"السرعة فقط"}, {en:"Only magnetic field", ar:"المجال المغناطيسي فقط"}, {en:"Both velocity and magnetic field", ar:"كل من السرعة والمجال المغناطيسي"}, {en:"Neither", ar:"لا هذا ولا ذاك"}], correctIndex: 2 },
+            { chapter: 6, qEn: "If a charged particle moves parallel to the magnetic field, the force is:", qAr: "إذا تحرك جسيم مشحون موازيًا للمجال المغناطيسي، فإن القوة تكون:", options: [{en:"Maximum", ar:"أعظمية"}, {en:"Minimum", ar:"صغرى"}, {en:"Zero", ar:"صفر"}, {en:"Infinite", ar:"لا نهائية"}], correctIndex: 2 },
+            { chapter: 6, qEn: "The magnetic force on a moving charged particle is given by (magnitude only):", qAr: "القوة المغناطيسية على جسيم مشحون متحرك تعطى بالعلاقة (المقدار فقط):", options: [{en:"F = qE", ar:"F = qE"}, {en:"F = qvB", ar:"F = qvB"}, {en:"F = mv²", ar:"F = mv²"}, {en:"F = mv/r", ar:"F = mv/r"}], correctIndex: 1 },
+            { chapter: 6, qEn: "The angular speed of a charged particle moving in a uniform magnetic field is:", qAr: "السرعة الزاوية لجسيم مشحون يتحرك في مجال مغناطيسي منتظم هي:", options: [{en:"ω = mv/(qB)", ar:"ω = mv/(qB)"}, {en:"ω = qB/m", ar:"ω = qB/m"}, {en:"ω = qv/B", ar:"ω = qv/B"}, {en:"ω = m/(qB)", ar:"ω = m/(qB)"}], correctIndex: 1 },
+            { chapter: 6, qEn: "The radius of the circular path of a charged particle in a magnetic field is:", qAr: "نصف قطر المسار الدائري لجسيم مشحون في مجال مغناطيسي هو:", options: [{en:"qB/(mv)", ar:"qB/(mv)"}, {en:"mv/(qB)", ar:"mv/(qB)"}, {en:"qv/(mv)", ar:"qv/(mv)"}, {en:"qv/(mB)", ar:"qv/(mB)"}], correctIndex: 1 },
+            { chapter: 6, qEn: "The period of motion of a charged particle in a magnetic field is:", qAr: "زمن الدورة لجسيم مشحون في مجال مغناطيسي هو:", options: [{en:"T = 2πm/(qB)", ar:"T = 2πm/(qB)"}, {en:"T = qB/(2πm)", ar:"T = qB/(2πm)"}, {en:"T = mv/(qB)", ar:"T = mv/(qB)"}, {en:"T = 2πqB/m", ar:"T = 2πqB/m"}], correctIndex: 0 },
+            { chapter: 6, qEn: "The angular speed of a charged particle in a magnetic field is also known as:", qAr: "السرعة الزاوية لجسيم مشحون في مجال مغناطيسي تعرف أيضًا باسم:", options: [{en:"Resonance frequency", ar:"تردد الرنين"}, {en:"Cyclotron frequency", ar:"تردد السيكلوترون"}, {en:"Doppler frequency", ar:"تردد دوبلر"}, {en:"Natural frequency", ar:"التردد الطبيعي"}], correctIndex: 1 },
+            { chapter: 6, qEn: "If the magnetic field strength increases, the radius of the circular path will:", qAr: "إذا زادت شدة المجال المغناطيسي، فإن نصف قطر المسار الدائري سوف:", options: [{en:"Increase", ar:"يزداد"}, {en:"Decrease", ar:"يقل"}, {en:"Remain constant", ar:"يبقى ثابتًا"}, {en:"Become zero", ar:"يصبح صفرًا"}], correctIndex: 1 },
+            { chapter: 6, qEn: "Which formula gives the magnetic force acting on a current-carrying wire placed perpendicular to a magnetic field?", qAr: "أي صيغة تعطي القوة المغناطيسية المؤثرة على سلك يمر به تيار موضوع عموديًا على مجال مغناطيسي؟", options: [{en:"F = qE", ar:"F = qE"}, {en:"F = ILB", ar:"F = ILB"}, {en:"V = IR", ar:"V = IR"}, {en:"P = IV", ar:"P = IV"}], correctIndex: 1 },
+            { chapter: 6, qEn: "Which rule is used to determine the direction of the magnetic field around a current-carrying wire?", qAr: "أي قاعدة تستخدم لتحديد اتجاه المجال المغناطيسي حول سلك يمر به تيار؟", options: [{en:"Left-hand rule", ar:"قاعدة اليد اليسرى"}, {en:"Fleming's rule", ar:"قاعدة فلمنغ"}, {en:"Right-hand rule", ar:"قاعدة اليد اليمنى"}, {en:"Newton's rule", ar:"قاعدة نيوتن"}], correctIndex: 2 },
+            { chapter: 6, qEn: "Ampere's law can be expressed as:", qAr: "قانون أمبير يمكن التعبير عنه كالتالي:", options: [{en:"∮ B·ds = μ0 I / L", ar:"∮ B·ds = μ0 I / L"}, {en:"∮ B·ds = μ0 I", ar:"∮ B·ds = μ0 I"}, {en:"∮ B·ds = μ0 / I", ar:"∮ B·ds = μ0 / I"}, {en:"∮ B·ds = I / μ0", ar:"∮ B·ds = I / μ0"}], correctIndex: 1 },
+            { chapter: 6, qEn: "The Biot-Savart law is used to calculate:", qAr: "قانون بيو-سافار يستخدم لحساب:", options: [{en:"Electric force", ar:"القوة الكهربائية"}, {en:"Magnetic field produced by a current", ar:"المجال المغناطيسي الناتج عن تيار"}, {en:"Voltage difference", ar:"فرق الجهد"}, {en:"Resistance", ar:"المقاومة"}], correctIndex: 1 },
+            { chapter: 6, qEn: "According to Ampere's law, the line integral of B·ds around a closed path equals:", qAr: "وفقًا لقانون أمبير، فإن التكامل الخطي لـ B·ds حول مسار مغلق يساوي:", options: [{en:"μ0 I", ar:"μ0 I"}, {en:"qE", ar:"qE"}, {en:"IR", ar:"IR"}, {en:"P/V", ar:"P/V"}], correctIndex: 0 },
+            { chapter: 6, qEn: "The magnetic force per unit length between two long parallel wires is:", qAr: "القوة المغناطيسية لكل وحدة طول بين سلكين طويلين متوازيين هي:", options: [{en:"μ0 I1 I2 / (4π a)", ar:"μ0 I1 I2 / (4π a)"}, {en:"μ0 I1 I2 / (2π a)", ar:"μ0 I1 I2 / (2π a)"}, {en:"μ0 I1 / (4π a²)", ar:"μ0 I1 / (4π a²)"}, {en:"μ0 I2 / (2π a²)", ar:"μ0 I2 / (2π a²)"}], correctIndex: 1 },
+            { chapter: 6, qEn: "When two parallel wires carry currents in the same direction, the force between them is:", qAr: "عندما يحمل سلكان متوازيان تيارين في نفس الاتجاه، فإن القوة بينهما تكون:", options: [{en:"Zero", ar:"صفر"}, {en:"Attractive", ar:"تجاذب"}, {en:"Repulsive", ar:"تنافر"}, {en:"Depends on wire thickness", ar:"تعتمد على سمك السلك"}], correctIndex: 1 },
+            { chapter: 6, qEn: "When two parallel wires carry currents in opposite directions, the force between them is:", qAr: "عندما يحمل سلكان متوازيان تيارين في اتجاهين متعاكسين، فإن القوة بينهما تكون:", options: [{en:"Zero", ar:"صفر"}, {en:"Attractive", ar:"تجاذب"}, {en:"Repulsive", ar:"تنافر"}, {en:"Perpendicular to both wires", ar:"عمودية على كلا السلكين"}], correctIndex: 2 },
+
+            // --- CHAPTER 7 (6 سؤال) ---
+            { chapter: 7, qEn: "The inductive reactance XL of a coil in an AC circuit:", qAr: "المفاعلة الحثية XL لملف في دائرة تيار متردد:", options: [{en:"Decreases when frequency increases", ar:"تقل عندما يزداد التردد"}, {en:"Increases when frequency increases", ar:"تزداد عندما يزداد التردد"}, {en:"Is equal to the capacitance of the coil", ar:"تساوي سعة الملف"}, {en:"Has units of farads", ar:"وحدتها الفاراد"}], correctIndex: 1 },
+            { chapter: 7, qEn: "If XL = XC, the impedance of the circuit becomes:", qAr: "إذا كانت XL = XC، فإن معاوقة الدائرة تصبح:", options: [{en:"0", ar:"0"}, {en:"R", ar:"R"}, {en:"XL + XC", ar:"XL + XC"}, {en:"Infinite", ar:"لا نهائية"}], correctIndex: 1 },
+            { chapter: 7, qEn: "The inductive reactance XL is given by:", qAr: "المفاعلة الحثية XL تعطى بالعلاقة:", options: [{en:"XL = 1/(2πfC)", ar:"XL = 1/(2πfC)"}, {en:"XL = 2πfL", ar:"XL = 2πfL"}, {en:"XL = R/(2πf)", ar:"XL = R/(2πf)"}, {en:"XL = 2πfC", ar:"XL = 2πfC"}], correctIndex: 1 },
+            { chapter: 7, qEn: "The impedance Z of a series RLC circuit is:", qAr: "المعاوقة Z لدائرة RLC على التوالي هي:", options: [{en:"Z = R + XL + XC", ar:"Z = R + XL + XC"}, {en:"Z = √(R² + (XL + XC)²)", ar:"Z = √(R² + (XL + XC)²)"}, {en:"Z = √(R² + (XL - XC)²)", ar:"Z = √(R² + (XL - XC)²)"}, {en:"Z = XL - XC", ar:"Z = XL - XC"}], correctIndex: 2 },
+            { chapter: 7, qEn: "The resonance frequency (f0) in an RLC circuit is given by:", qAr: "تردد الرنين (f0) في دائرة RLC يعطى بالعلاقة:", options: [{en:"f0 = 1/√(LC)", ar:"f0 = 1/√(LC)"}, {en:"f0 = 1/(LC)", ar:"f0 = 1/(LC)"}, {en:"f0 = 1/(2π√(LC))", ar:"f0 = 1/(2π√(LC))"}, {en:"f0 = 1/(2πLC)", ar:"f0 = 1/(2πLC)"}], correctIndex: 2 }
+        ];
+
+        let currentQuestionsList = [];
+        let currentIndex = 0;
+        let userScore = 0;
+        let answered = false;
+        let currentQuestionObj = null;
+
+        function filterChapter(chapter) {
+            if (chapter === 'all') {
+                currentQuestionsList = [...physicsDatabase];
+            } else {
+                currentQuestionsList = physicsDatabase.filter(q => q.chapter === chapter);
+            }
+            currentIndex = 0;
+            userScore = 0;
+            answered = false;
+            updateStats();
+            loadQuestion();
+            
+            document.querySelectorAll('.chapter-btn').forEach(btn => btn.classList.remove('active'));
+            if (chapter === 'all') {
+                document.querySelector('.chapter-btn:first-child').classList.add('active');
+            } else {
+                document.querySelectorAll('.chapter-btn').forEach(btn => {
+                    if (btn.innerText.includes(chapter.toString())) btn.classList.add('active');
+                });
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('current-index').innerText = currentIndex + 1;
+            document.getElementById('total-questions').innerText = currentQuestionsList.length;
+            document.getElementById('score-display').innerText = userScore;
+            let accuracy = currentQuestionsList.length ? Math.round((userScore / currentQuestionsList.length) * 100) : 0;
+            document.getElementById('accuracy-display').innerText = accuracy;
+        }
+
+        function loadQuestion() {
+            if (currentQuestionsList.length === 0) return;
+            answered = false;
+            currentQuestionObj = currentQuestionsList[currentIndex];
+            document.getElementById('q-english').innerHTML = currentQuestionObj.qEn;
+            document.getElementById('q-arabic').innerHTML = currentQuestionObj.qAr;
+            document.getElementById('card-chapter-tag').innerHTML = `CHAPTER ${currentQuestionObj.chapter}`;
+            
+            let optionsHtml = '';
+            currentQuestionObj.options.forEach((opt, idx) => {
+                optionsHtml += `
+                    <div class="option-btn" onclick="checkAnswer(${idx})">
+                        <div class="opt-en">${opt.en}</div>
+                        <div class="opt-ar">${opt.ar}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('options-box').innerHTML = optionsHtml;
+            document.getElementById('feedback-box').style.display = 'none';
+            document.getElementById('feedback-box').className = 'feedback-box';
+            document.getElementById('next-card-btn').style.display = 'none';
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('correct', 'wrong'));
+        }
+
+        function checkAnswer(selected) {
+            if (answered) return;
+            answered = true;
+            const isCorrect = (selected === currentQuestionObj.correctIndex);
+            if (isCorrect) {
+                userScore++;
+                updateStats();
+            }
+            
+            let optionsDivs = document.querySelectorAll('.option-btn');
+            optionsDivs[currentQuestionObj.correctIndex].classList.add('correct');
+            if (!isCorrect) {
+                optionsDivs[selected].classList.add('wrong');
+            }
+            
+            let feedbackBox = document.getElementById('feedback-box');
+            let correctLetter = String.fromCharCode(65 + currentQuestionObj.correctIndex);
+            let correctText = currentQuestionObj.options[currentQuestionObj.correctIndex].en;
+            if (isCorrect) {
+                feedbackBox.innerHTML = `<div class="explanation-title">✅ إجابة صحيحة!</div><div class="explanation-text">${correctLetter}. ${correctText} هي الإجابة الصحيحة.</div>`;
+                feedbackBox.classList.add('correct-style');
+            } else {
+                feedbackBox.innerHTML = `<div class="explanation-title">❌ إجابة خاطئة</div><div class="explanation-text">الإجابة الصحيحة هي ${correctLetter}. ${correctText}</div>`;
+                feedbackBox.classList.add('wrong-style');
+            }
+            feedbackBox.style.display = 'block';
+            document.getElementById('next-card-btn').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            if (!answered) return;
+            if (currentIndex + 1 < currentQuestionsList.length) {
+                currentIndex++;
+                loadQuestion();
+            } else {
+                document.getElementById('q-english').innerHTML = "🎉 مبروك! 🎉";
+                document.getElementById('q-arabic').innerHTML = `لقد أنهيت جميع أسئلة ${document.querySelector('.chapter-btn.active').innerText} بنجاح. إجمالي الإجابات الصحيحة: ${userScore} من ${currentQuestionsList.length}`;
+                document.getElementById('options-box').innerHTML = '';
+                document.getElementById('feedback-box').style.display = 'none';
+                document.getElementById('next-card-btn').style.display = 'none';
+            }
+        }
+
+        // بدء التطبيق
+        filterChapter('all');
+    </script>
+</body>
+</html>
